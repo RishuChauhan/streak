@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#FFFDF8">
+<title>Streak</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFFDF8; --card:#FFFFFF; --ink:#3A3742; --dim:#8E8896; --line:#EFE9E2;
+  --mint:#5FD0A6; --mint-s:#41B48C; --mint-l:#DFF6EC;
+  --lilac:#A98BF5; --lilac-s:#8C6BE0; --lilac-l:#EEE7FE;
+  --peach:#FFA46B; --peach-s:#E8854B; --peach-l:#FFEADD;
+  --sky:#64B9F5; --sky-s:#4198D6; --sky-l:#E1F1FD;
+  --rose:#FF87AE; --rose-s:#E5658F; --rose-l:#FFE4EC;
+  --lemon:#FFD34E; --lemon-s:#E0B32C;
+  --shadow:0 2px 0;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,sans-serif}
+body{padding-top:env(safe-area-inset-top,0px)}
+h1,h2,h3,.disp{font-family:"Baloo 2",Nunito,sans-serif;font-weight:800;letter-spacing:.01em}
+.app{max-width:560px;margin:0 auto;padding:14px 14px 104px}
+
+/* top bar */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.bar .h{font-size:13px;color:var(--dim);font-weight:700}
+.bar h1{font-size:26px;margin:2px 0 0}
+.avatar{border:0;background:var(--lemon);border-bottom:3px solid var(--lemon-s);border-radius:14px;
+  font:800 14px Nunito;padding:9px 14px;color:#4A3A00;cursor:pointer}
+
+/* generic card + chunky button */
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px}
+.card h2{font-size:17px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card h2 span.s{font:600 12px Nunito;color:var(--dim)}
+.btn{border:0;border-radius:14px;padding:11px 16px;font:800 14px Nunito;cursor:pointer;
+  background:var(--mint);border-bottom:3px solid var(--mint-s);color:#093A28}
+.btn:active{transform:translateY(2px);border-bottom-width:1px}
+.btn.alt{background:var(--sky);border-bottom-color:var(--sky-s);color:#062E4A}
+.btn.ghost{background:#F6F2EC;border-bottom:3px solid #E2DAD0;color:var(--ink)}
+.btn.warn{background:var(--rose);border-bottom-color:var(--rose-s);color:#4A0F22}
+.btn.sm{padding:7px 11px;font-size:12.5px;border-radius:11px}
+.row{display:flex;gap:8px;align-items:center}
+.grow{flex:1;min-width:0}
+input,select{font:600 14px Nunito;color:var(--ink);background:#FBF8F4;border:1px solid var(--line);
+  border-radius:12px;padding:10px 12px;width:100%}
+input:focus,select:focus{outline:2px solid var(--sky);outline-offset:1px}
+.pill{display:inline-flex;align-items:center;gap:6px;background:var(--lemon);color:#4A3A00;
+  border-radius:99px;padding:5px 11px;font:800 13px Nunito}
+
+/* rings */
+.rings{display:flex;gap:16px;align-items:center}
+.rings svg{flex:0 0 auto}
+.legend{flex:1;display:grid;gap:7px}
+.legend div{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700}
+.legend i{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+.legend em{font-style:normal;color:var(--dim);font-weight:600;margin-left:auto;font-size:12.5px}
+
+/* habit rows */
+.h-row{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:16px;
+  background:#FBF8F4;margin-bottom:8px;cursor:pointer;border:1.5px solid transparent}
+.h-row:last-child{margin-bottom:0}
+.h-row .em{font-size:20px;width:26px;text-align:center}
+.h-row .nm{flex:1;font-weight:700;font-size:15px}
+.h-row .xp{font:800 12px Nunito;color:var(--dim)}
+.h-row .bx{width:26px;height:26px;border-radius:9px;border:2px solid #E2DAD0;background:#fff;
+  display:grid;place-items:center;color:transparent;font-size:14px;font-weight:800}
+.h-row.on{background:var(--mint-l);border-color:var(--mint)}
+.h-row.on .bx{background:var(--mint);border-color:var(--mint);color:#fff}
+.h-row.on .nm{color:var(--mint-s)}
+.h-row.ro{cursor:default;opacity:.85}
+
+/* calendar */
+.cal-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal .dow{text-align:center;font:800 11px Nunito;color:var(--dim);padding-bottom:2px}
+.cell{aspect-ratio:1;border-radius:14px;background:#FBF8F4;border:1.5px solid transparent;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;padding:2px}
+.cell.out{opacity:.32}
+.cell.sel{border-color:var(--sky);background:var(--sky-l)}
+.cell.today{border-color:var(--lemon)}
+.cell .n{font:800 13px Nunito}
+.cell .dots{display:flex;gap:2px;height:6px}
+.cell .dots i{width:5px;height:5px;border-radius:50%}
+.cell .done{position:relative}
+.cell.hit{background:var(--mint-l)}
+.ev{display:flex;align-items:center;gap:9px;padding:9px 11px;background:#FBF8F4;border-radius:14px;margin-bottom:7px}
+.ev .em{font-size:17px}
+.ev .t{flex:1;font-weight:700;font-size:14.5px}
+.ev .x{border:0;background:transparent;color:var(--dim);font:800 16px Nunito;cursor:pointer;padding:0 4px}
+
+/* dashboard */
+.vs{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;text-align:center}
+.vs .big{font-family:"Baloo 2";font-weight:800;font-size:40px;line-height:1}
+.vs .nm{font-size:13px;font-weight:700;color:var(--dim)}
+.vs .sub{font-size:12px;color:var(--dim);font-weight:600}
+.vs .mid{font:800 12px Nunito;color:var(--dim)}
+.bars{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:6px}
+.bars .col{text-align:center}
+.bars .stack{height:72px;display:flex;gap:3px;align-items:flex-end;justify-content:center}
+.bars i{width:9px;border-radius:4px;min-height:3px;display:block}
+.bars .lb{font:700 10.5px Nunito;color:var(--dim);margin-top:5px}
+table.hist{width:100%;border-collapse:collapse;font-size:13.5px}
+table.hist td,table.hist th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:left}
+table.hist th{font:800 12px Nunito;color:var(--dim)}
+table.hist td.w{font-weight:800}
+
+/* settings */
+.edit{background:#FBF8F4;border-radius:16px;padding:11px;margin-bottom:9px}
+.edit .g{display:grid;grid-template-columns:54px 1fr;gap:7px;margin-bottom:7px}
+.edit .g2{display:grid;grid-template-columns:1fr 1fr 70px;gap:7px}
+.ord{display:flex;align-items:center;gap:8px;background:#FBF8F4;border-radius:14px;padding:10px 12px;margin-bottom:7px}
+.ord .t{flex:1;font-weight:700;font-size:14.5px}
+.sw{width:44px;height:26px;border-radius:99px;background:#E2DAD0;border:0;position:relative;cursor:pointer;flex:0 0 auto}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.15s}
+.sw.on{background:var(--mint)}
+.sw.on::after{left:21px}
+
+/* nav */
+nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(4,1fr);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));z-index:5}
+nav button{border:0;background:transparent;padding:8px 2px;cursor:pointer;font:800 11px Nunito;color:var(--dim);
+  display:grid;gap:3px;justify-items:center;border-radius:14px}
+nav button .ic{font-size:20px;line-height:1}
+nav button.on{color:var(--ink);background:#FBF8F4}
+
+/* overlays */
+.modal{position:fixed;inset:0;background:rgba(40,34,30,.55);display:grid;place-items:center;z-index:20;padding:18px}
+.modal .box{background:#fff;border-radius:24px;padding:22px;width:min(400px,92vw)}
+.modal h3{margin:0 0 4px;font-size:22px}
+.modal p{margin:0 0 16px;color:var(--dim);font-size:13.5px;font-weight:600}
+.modal .btn{width:100%;margin-top:9px}
+.err{background:var(--rose-l);border:1px solid var(--rose);color:#7A2040;border-radius:14px;
+  padding:11px 13px;font-size:13px;font-weight:700;margin-bottom:12px;display:none}
+.hide{display:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="bar">
+    <div>
+      <div class="h" id="topSub">Loading</div>
+      <h1 id="topTitle">Streak</h1>
+    </div>
+    <button class="avatar" id="whoBtn" type="button">…</button>
+  </div>
+
+  <div class="err" id="err"></div>
+
+  <div id="view"></div>
+</div>
+
+<nav>
+  <button data-tab="today" class="on"><span class="ic">🔥</span>Today</button>
+  <button data-tab="cal"><span class="ic">🗓️</span>Calendar</button>
+  <button data-tab="dash"><span class="ic">🏆</span>Dashboard</button>
+  <button data-tab="set"><span class="ic">⚙️</span>Setup</button>
+</nav>
+
+<div class="modal hide" id="pick">
+  <div class="box">
+    <h3>Who's tapping? 👋</h3>
+    <p>Saved on this phone. Switch any time from the button up top.</p>
+    <button class="btn" data-me="r" type="button">I'm Rishu</button>
+    <button class="btn alt" data-me="s" type="button">I'm Saloni</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, update, set, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCv97yuzZf4-OeJEUQcgHzHHUoYlrahqxY",
+  authDomain: "habit-tracker-54259.firebaseapp.com",
+  databaseURL: "https://habit-tracker-54259-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "habit-tracker-54259",
+  storageBucket: "habit-tracker-54259.firebasestorage.app",
+  messagingSenderId: "650412949881",
+  appId: "1:650412949881:web:78e19ceb7d9d6aecab6fa8"
+};
+
+/* ── constants ─────────────────────────────────────────────── */
+const RINGS = {
+  body:  {name:"Body",  color:"var(--mint)",  emoji:"💪"},
+  mind:  {name:"Mind",  color:"var(--lilac)", emoji:"🧘"},
+  craft: {name:"Craft", color:"var(--peach)", emoji:"📘"}
+};
+const RING_HEX = {body:"#5FD0A6", mind:"#A98BF5", craft:"#FFA46B"};
+const CARDS = {
+  rings:  "Progress rings",
+  habits: "Today's habits",
+  events: "Today's events",
+  streak: "Streak and score"
+};
+const DOW = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const EMOJI = ["💪","🏃","👟","🧘","😴","📘","💻","🎬","📱","🎭","🎸","📖","🥗","💧","🧠","🎯","☀️","🌙"];
+const DEFAULTS = {
+  minDay: 25,
+  people: {
+    r: {name:"Rishu",  emoji:"🐯"},
+    s: {name:"Saloni", emoji:"🦋"}
+  },
+  habits: {
+    r: {
+      gym:   {label:"Gym session",        emoji:"💪", pts:15, ring:"body",  freq:"daily",  order:1},
+      steps: {label:"10,000 steps",       emoji:"👟", pts:5,  ring:"body",  freq:"daily",  order:2},
+      gre:   {label:"GRE, 3 hours",       emoji:"📘", pts:15, ring:"craft", freq:"daily",  order:3},
+      dsa:   {label:"DSA or AI, 3 hours", emoji:"💻", pts:15, ring:"craft", freq:"daily",  order:4},
+      sleep: {label:"Slept on time",      emoji:"😴", pts:10, ring:"mind",  freq:"daily",  order:5},
+      med:   {label:"Meditation, twice",  emoji:"🧘", pts:5,  ring:"mind",  freq:"daily",  order:6},
+      setup: {label:"GRE plan locked in", emoji:"🎯", pts:20, ring:"craft", freq:"weekly", order:7}
+    },
+    s: {
+      gym:   {label:"Gym or calisthenics", emoji:"💪", pts:15, ring:"body",  freq:"daily",  order:1},
+      home:  {label:"Home workout",        emoji:"🤸", pts:10, ring:"body",  freq:"daily",  order:2},
+      steps: {label:"10,000 steps",        emoji:"👟", pts:5,  ring:"body",  freq:"daily",  order:3},
+      cont:  {label:"Content work",        emoji:"🎬", pts:15, ring:"craft", freq:"daily",  order:4},
+      sleep: {label:"Slept on time",       emoji:"😴", pts:10, ring:"mind",  freq:"daily",  order:5},
+      med:   {label:"Meditation",          emoji:"🧘", pts:5,  ring:"mind",  freq:"daily",  order:6},
+      reels: {label:"2 reels posted",      emoji:"📱", pts:20, ring:"craft", freq:"weekly", order:7},
+      show:  {label:"Show day",            emoji:"🎭", pts:20, ring:"craft", freq:"weekly", order:8}
+    }
+  }
+};
+
+/* ── dates ─────────────────────────────────────────────────── */
+const pad = n => String(n).padStart(2,"0");
+const iso = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parseISO = s => { const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); };
+function monday(d){ const t=new Date(d); t.setHours(0,0,0,0); t.setDate(t.getDate()-((t.getDay()+6)%7)); return t; }
+const weekOf = d => iso(monday(d));
+const dayIdx = d => (new Date(d).getDay()+6)%7;
+const fmtD = d => d.toLocaleDateString(undefined,{day:"numeric",month:"short"});
+function addDays(d,n){ const t=new Date(d); t.setDate(t.getDate()+n); return t; }
+
+/* ── state ─────────────────────────────────────────────────── */
+let S = {config:null, weeks:{}, events:{}, layout:{}};
+let me = null, tab = "today", sel = iso(new Date()), calMonth = new Date();
+let seeded = false;
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+try { me = localStorage.getItem("player"); } catch(e){}
+
+const el = id => document.getElementById(id);
+function fail(m){ const e=el("err"); e.textContent=m; e.style.display="block"; }
+
+let db;
+try {
+  db = getDatabase(initializeApp(firebaseConfig));
+} catch(e){ fail("Firebase failed to start. "+e.message); }
+
+function subscribe(){
+  if (!db) return;
+  {
+  onValue(ref(db,"config"), s => {
+    S.config = s.val();
+    if (!S.config && !seeded){ seeded = true; set(ref(db,"config"), DEFAULTS).catch(()=>fail("Couldn't write the starting setup.")); }
+    render();
+  }, e => fail("Can't read the database ("+e.code+")."));
+  onValue(ref(db,"weeks"),  s => { S.weeks  = s.val()||{}; render(); });
+  onValue(ref(db,"events"), s => { S.events = s.val()||{}; render(); });
+  onValue(ref(db,"layout"), s => { S.layout = s.val()||{}; render(); });
+}
+
+}
+
+/* ── data helpers ──────────────────────────────────────────── */
+const cfg = () => S.config || DEFAULTS;
+const person = w => (cfg().people && cfg().people[w]) || DEFAULTS.people[w];
+const minDay = () => Number(cfg().minDay ?? 25);
+function habits(w, freq){
+  const h = (cfg().habits && cfg().habits[w]) || {};
+  return Object.entries(h)
+    .map(([id,v]) => ({id, ...v}))
+    .filter(x => !freq || (x.freq||"daily") === freq)
+    .sort((a,b) => (a.order||99)-(b.order||99));
+}
+function ticks(w, dateStr){
+  const wk = weekOf(parseISO(dateStr));
+  return (S.weeks[wk] && S.weeks[wk][w] && S.weeks[wk][w]["d"+dayIdx(parseISO(dateStr))]) || {};
+}
+function weeklyTicks(w, wk){ return (S.weeks[wk] && S.weeks[wk][w] && S.weeks[wk][w].w) || {}; }
+function dayPts(w, dateStr){
+  const t = ticks(w,dateStr);
+  return habits(w,"daily").reduce((n,h) => n + (t[h.id] ? Number(h.pts||0) : 0), 0);
+}
+function dayGoal(w){ return habits(w,"daily").reduce((n,h)=>n+Number(h.pts||0),0); }
+function ringPct(w, dateStr, ring){
+  const t = ticks(w,dateStr);
+  let got=0, goal=0;
+  habits(w,"daily").filter(h=>(h.ring||"body")===ring).forEach(h => { goal+=Number(h.pts||0); if(t[h.id]) got+=Number(h.pts||0); });
+  return goal ? Math.min(1, got/goal) : 0;
+}
+function weekPts(w, wk){
+  const mon = parseISO(wk);
+  let n = 0;
+  for (let i=0;i<7;i++) n += dayPts(w, iso(addDays(mon,i)));
+  const wt = weeklyTicks(w,wk);
+  habits(w,"weekly").forEach(h => { if (wt[h.id]) n += Number(h.pts||0); });
+  return n;
+}
+function weekTarget(w){
+  return dayGoal(w)*7 + habits(w,"weekly").reduce((n,h)=>n+Number(h.pts||0),0);
+}
+function streak(w){
+  let n = 0, d = new Date();
+  if (dayPts(w, iso(d)) < minDay()) d = addDays(d,-1);   // today still in progress
+  for (let i=0;i<400;i++){
+    if (dayPts(w, iso(d)) >= minDay()){ n++; d = addDays(d,-1); } else break;
+  }
+  return n;
+}
+function dayEvents(dateStr){
+  const e = S.events[dateStr] || {};
+  return Object.entries(e).map(([id,v]) => ({id, ...v}));
+}
+function layoutFor(w){
+  const saved = S.layout[w];
+  const order = (saved && saved.order) || Object.keys(CARDS);
+  const off = (saved && saved.off) || {};
+  return order.filter(k => CARDS[k]).map(k => ({k, on: !off[k]}));
+}
+
+/* ── writes ────────────────────────────────────────────────── */
+async function tick(w, dateStr, id, val){
+  const wk = weekOf(parseISO(dateStr));
+  try { await update(ref(db, `weeks/${wk}/${w}/d${dayIdx(parseISO(dateStr))}`), {[id]: val}); }
+  catch(e){ fail("That tap didn't save. Check your connection."); }
+}
+async function tickWeekly(w, wk, id, val){
+  try { await update(ref(db, `weeks/${wk}/${w}/w`), {[id]: val}); }
+  catch(e){ fail("That tap didn't save."); }
+}
+
+/* ── ring svg ──────────────────────────────────────────────── */
+function ringsSvg(w, dateStr, size){
+  const R = [52,38,24], SW = 12;
+  const keys = Object.keys(RINGS);
+  let out = `<svg width="${size}" height="${size}" viewBox="0 0 130 130" aria-hidden="true">`;
+  keys.forEach((k,i) => {
+    const r = R[i], c = 2*Math.PI*r, p = ringPct(w,dateStr,k);
+    out += `<circle cx="65" cy="65" r="${r}" fill="none" stroke="${RING_HEX[k]}" stroke-opacity=".17" stroke-width="${SW}"/>`;
+    out += `<circle cx="65" cy="65" r="${r}" fill="none" stroke="${RING_HEX[k]}" stroke-width="${SW}"
+      stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-p)}"
+      transform="rotate(-90 65 65)"/>`;
+  });
+  return out + "</svg>";
+}
+
+/* ── views ─────────────────────────────────────────────────── */
+function viewToday(){
+  const today = iso(new Date());
+  const wk = weekOf(new Date());
+  const p = person(me);
+  let html = "";
+
+  layoutFor(me).filter(c=>c.on).forEach(c => {
+    if (c.k === "rings"){
+      html += `<div class="card"><h2>Rings <span class="s">${esc(new Date().toLocaleDateString(undefined,{weekday:"long"}))}</span></h2>
+        <div class="rings">${ringsSvg(me,today,130)}<div class="legend">` +
+        Object.entries(RINGS).map(([k,v]) =>
+          `<div><i style="background:${RING_HEX[k]}"></i>${v.emoji} ${v.name}<em>${Math.round(ringPct(me,today,k)*100)}%</em></div>`
+        ).join("") + `</div></div></div>`;
+    }
+    if (c.k === "habits"){
+      const t = ticks(me,today);
+      html += `<div class="card"><h2>Today <span class="s">${dayPts(me,today)} / ${dayGoal(me)} XP</span></h2>` +
+        (habits(me,"daily").length ? habits(me,"daily").map(h =>
+          `<div class="h-row ${t[h.id]?"on":""}" data-tick="${h.id}" data-date="${today}">
+            <span class="em">${esc(h.emoji||"✅")}</span><span class="nm">${esc(h.label)}</span>
+            <span class="xp">${Number(h.pts||0)}</span><span class="bx">✓</span></div>`).join("")
+          : `<p class="s" style="color:var(--dim)">No habits yet. Add them in Setup.</p>`);
+      const wt = weeklyTicks(me,wk), wh = habits(me,"weekly");
+      if (wh.length){
+        html += `<h2 style="margin-top:16px">This week's one-offs</h2>` + wh.map(h =>
+          `<div class="h-row ${wt[h.id]?"on":""}" data-wtick="${h.id}">
+            <span class="em">${esc(h.emoji||"🎯")}</span><span class="nm">${esc(h.label)}</span>
+            <span class="xp">${Number(h.pts||0)}</span><span class="bx">✓</span></div>`).join("");
+      }
+      html += `</div>`;
+    }
+    if (c.k === "events"){
+      const ev = dayEvents(today);
+      html += `<div class="card"><h2>Events today</h2>` +
+        (ev.length ? ev.map(e => `<div class="ev"><span class="em">${esc(e.emoji||"📌")}</span>
+          <span class="t">${esc(e.title)}</span><span class="xp">${esc(person(e.who)?.name||"")}</span></div>`).join("")
+        : `<p style="color:var(--dim);font-weight:600;font-size:13.5px;margin:0">Nothing scheduled. Add one from the calendar.</p>`) + `</div>`;
+    }
+    if (c.k === "streak"){
+      const mine = weekPts(me,wk), tgt = weekTarget(me);
+      html += `<div class="card"><h2>Score</h2>
+        <div class="row" style="gap:10px;flex-wrap:wrap">
+          <span class="pill">🔥 ${streak(me)} day streak</span>
+          <span class="pill" style="background:var(--sky);color:#062E4A">⚡ ${mine} XP this week</span>
+          <span class="pill" style="background:var(--lilac);color:#2B1A55">🎯 ${tgt?Math.round(mine/tgt*100):0}% of target</span>
+        </div></div>`;
+    }
+  });
+  return html;
+}
+
+function viewCal(){
+  const first = new Date(calMonth.getFullYear(), calMonth.getMonth(), 1);
+  const start = monday(first);
+  const todayS = iso(new Date());
+  let cells = "";
+  for (let i=0;i<42;i++){
+    const d = addDays(start,i), s = iso(d);
+    const out = d.getMonth() !== calMonth.getMonth();
+    const hit = dayPts(me,s) >= minDay();
+    const ev = dayEvents(s);
+    cells += `<div class="cell ${out?"out":""} ${s===sel?"sel":""} ${s===todayS?"today":""} ${hit?"hit":""}" data-day="${s}">
+      <span class="n">${d.getDate()}</span>
+      <span class="dots">${ev.slice(0,3).map(()=>`<i style="background:var(--sky)"></i>`).join("")}</span></div>`;
+  }
+  const selD = parseISO(sel);
+  const t = ticks(me,sel);
+  const ev = dayEvents(sel);
+  return `<div class="card">
+    <div class="cal-top">
+      <button class="btn ghost sm" data-mon="-1">‹</button>
+      <h2 style="margin:0">${calMonth.toLocaleDateString(undefined,{month:"long",year:"numeric"})}</h2>
+      <button class="btn ghost sm" data-mon="1">›</button>
+    </div>
+    <div class="cal">${DOW.map(d=>`<div class="dow">${d}</div>`).join("")}${cells}</div>
+  </div>
+
+  <div class="card">
+    <h2>${esc(selD.toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"}))}
+      <span class="s">${dayPts(me,sel)} XP</span></h2>
+    ${habits(me,"daily").map(h => `<div class="h-row ${t[h.id]?"on":""}" data-tick="${h.id}" data-date="${sel}">
+      <span class="em">${esc(h.emoji||"✅")}</span><span class="nm">${esc(h.label)}</span>
+      <span class="xp">${Number(h.pts||0)}</span><span class="bx">✓</span></div>`).join("")}
+  </div>
+
+  <div class="card">
+    <h2>Events</h2>
+    ${ev.map(e=>`<div class="ev"><span class="em">${esc(e.emoji||"📌")}</span>
+      <span class="t">${esc(e.title)}</span>
+      <button class="x" data-delev="${e.id}" title="Delete">×</button></div>`).join("")}
+    <div class="row" style="margin-top:8px">
+      <select id="evEm" style="width:74px">${EMOJI.map(e=>`<option>${e}</option>`).join("")}</select>
+      <input id="evT" class="grow" placeholder="Add an event" maxlength="60">
+      <button class="btn sm" id="evAdd">Add</button>
+    </div>
+  </div>`;
+}
+
+function viewDash(){
+  const wk = weekOf(new Date());
+  const pr = weekPts("r",wk), ps = weekPts("s",wk);
+  const cr = weekTarget("r") ? Math.round(pr/weekTarget("r")*100) : 0;
+  const cs = weekTarget("s") ? Math.round(ps/weekTarget("s")*100) : 0;
+  const mon = parseISO(wk);
+  const maxD = Math.max(1, ...Array.from({length:7},(_,i)=>Math.max(dayPts("r",iso(addDays(mon,i))), dayPts("s",iso(addDays(mon,i))))));
+
+  const weeks = Object.keys(S.weeks).sort().reverse().slice(0,6);
+  const hist = weeks.map(w => {
+    const a = weekPts("r",w), b = weekPts("s",w);
+    const pa = weekTarget("r")?Math.round(a/weekTarget("r")*100):0;
+    const pb = weekTarget("s")?Math.round(b/weekTarget("s")*100):0;
+    const win = pa===pb ? "Tie" : (pa>pb ? person("r").name : person("s").name);
+    return `<tr><td>${fmtD(parseISO(w))}</td><td>${pa}%</td><td>${pb}%</td><td class="w">${esc(win)}</td></tr>`;
+  }).join("");
+
+  return `<div class="card">
+    <h2>This week <span class="s">${fmtD(mon)} – ${fmtD(addDays(mon,6))}</span></h2>
+    <div class="vs">
+      <div><div class="nm">${esc(person("r").emoji||"")} ${esc(person("r").name)}</div>
+        <div class="big" style="color:var(--mint-s)">${cr}%</div><div class="sub">${pr} XP</div></div>
+      <div class="mid">VS</div>
+      <div><div class="nm">${esc(person("s").emoji||"")} ${esc(person("s").name)}</div>
+        <div class="big" style="color:var(--rose-s)">${cs}%</div><div class="sub">${ps} XP</div></div>
+    </div>
+    <p style="text-align:center;margin:12px 0 0;font-weight:800;color:var(--lemon-s)">
+      ${cr===cs ? "Dead level 🤝" : (cr>cs ? esc(person("r").name)+" leads by "+(cr-cs)+" 🏆" : esc(person("s").name)+" leads by "+(cs-cr)+" 🏆")}</p>
+  </div>
+
+  <div class="card">
+    <h2>Daily XP</h2>
+    <div class="bars">${Array.from({length:7},(_,i)=>{
+      const s = iso(addDays(mon,i));
+      const a = dayPts("r",s), b = dayPts("s",s);
+      return `<div class="col"><div class="stack">
+        <i style="height:${Math.max(3,Math.round(a/maxD*72))}px;background:var(--mint)"></i>
+        <i style="height:${Math.max(3,Math.round(b/maxD*72))}px;background:var(--rose)"></i>
+      </div><div class="lb">${DOW[i]}</div></div>`;
+    }).join("")}</div>
+  </div>
+
+  <div class="card">
+    <h2>Streaks</h2>
+    <div class="row" style="gap:10px;flex-wrap:wrap">
+      <span class="pill">🔥 ${esc(person("r").name)} ${streak("r")}</span>
+      <span class="pill" style="background:var(--rose);color:#4A0F22">🔥 ${esc(person("s").name)} ${streak("s")}</span>
+      <span class="pill" style="background:#F6F2EC;color:var(--dim)">Day counts at ${minDay()} XP</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Past weeks</h2>
+    ${hist ? `<table class="hist"><tr><th>Week</th><th>${esc(person("r").name)}</th><th>${esc(person("s").name)}</th><th>Winner</th></tr>${hist}</table>`
+           : `<p style="color:var(--dim);font-weight:600;font-size:13.5px;margin:0">Nothing logged yet.</p>`}
+  </div>`;
+}
+
+function viewSet(){
+  const p = person(me);
+  const hs = habits(me);
+  return `<div class="card">
+    <h2>You</h2>
+    <div class="row">
+      <select id="meEm" style="width:74px">${["🐯","🦋","🐺","🦊","🐼","🐙","🦁","🐸"].map(e=>`<option ${e===p.emoji?"selected":""}>${e}</option>`).join("")}</select>
+      <input id="meName" class="grow" value="${esc(p.name)}" maxlength="20">
+      <button class="btn sm" id="meSave">Save</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Your habits <span class="s">${hs.length}</span></h2>
+    ${hs.map(h=>`<div class="edit" data-hid="${h.id}">
+      <div class="g">
+        <select data-f="emoji">${EMOJI.map(e=>`<option ${e===h.emoji?"selected":""}>${e}</option>`).join("")}</select>
+        <input data-f="label" value="${esc(h.label)}" maxlength="40">
+      </div>
+      <div class="g2">
+        <select data-f="ring">${Object.entries(RINGS).map(([k,v])=>`<option value="${k}" ${k===(h.ring||"body")?"selected":""}>${v.emoji} ${v.name}</option>`).join("")}</select>
+        <select data-f="freq">
+          <option value="daily" ${(h.freq||"daily")==="daily"?"selected":""}>Every day</option>
+          <option value="weekly" ${h.freq==="weekly"?"selected":""}>Once a week</option></select>
+        <input data-f="pts" type="number" min="1" max="99" value="${Number(h.pts||5)}">
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn sm grow" data-save="${h.id}">Save</button>
+        <button class="btn sm warn" data-del="${h.id}">Delete</button>
+      </div>
+    </div>`).join("")}
+    <button class="btn alt" id="addHabit" style="width:100%;margin-top:4px">➕ Add a habit</button>
+  </div>
+
+  <div class="card">
+    <h2>Your layout <span class="s">drag-free, use arrows</span></h2>
+    ${layoutFor(me).map((c,i,arr)=>`<div class="ord">
+      <button class="btn ghost sm" data-up="${c.k}" ${i===0?"disabled":""}>↑</button>
+      <button class="btn ghost sm" data-down="${c.k}" ${i===arr.length-1?"disabled":""}>↓</button>
+      <span class="t">${CARDS[c.k]}</span>
+      <button class="sw ${c.on?"on":""}" data-toggle="${c.k}" aria-label="Show or hide"></button>
+    </div>`).join("")}
+  </div>
+
+  <div class="card">
+    <h2>Rules</h2>
+    <div class="row">
+      <span class="grow" style="font-weight:700;font-size:14.5px">A day counts at</span>
+      <input id="minD" type="number" min="5" max="200" value="${minDay()}" style="width:90px">
+      <button class="btn sm" id="minSave">Save</button>
+    </div>
+    <p style="color:var(--dim);font-weight:600;font-size:13px;margin:10px 0 0">
+      Hit that many XP and the day feeds your streak. Miss it and the streak resets, so keep a floor you can clear on a bad day.</p>
+  </div>`;
+}
+
+/* ── render ────────────────────────────────────────────────── */
+function render(){
+  if (!me){ el("pick").classList.remove("hide"); return; }
+  el("pick").classList.add("hide");
+  const p = person(me);
+  el("whoBtn").textContent = (p.emoji||"") + " " + p.name;
+  const titles = {today:"Today", cal:"Calendar", dash:"Dashboard", set:"Setup"};
+  el("topTitle").textContent = titles[tab];
+  el("topSub").textContent = tab==="today"
+    ? new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"})
+    : "🔥 " + streak(me) + " day streak";
+  el("view").innerHTML = tab==="today" ? viewToday() : tab==="cal" ? viewCal() : tab==="dash" ? viewDash() : viewSet();
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.tab===tab));
+}
+
+/* ── events ────────────────────────────────────────────────── */
+document.querySelectorAll("nav button").forEach(b =>
+  b.addEventListener("click", () => { tab = b.dataset.tab; window.scrollTo(0,0); render(); }));
+
+document.querySelectorAll("#pick button").forEach(b =>
+  b.addEventListener("click", () => { me = b.dataset.me; try{localStorage.setItem("player",me);}catch(e){} render(); }));
+
+el("whoBtn").addEventListener("click", () => {
+  me = null; try{localStorage.removeItem("player");}catch(e){} el("pick").classList.remove("hide");
+});
+
+el("view").addEventListener("click", async (e) => {
+  const t = e.target.closest("[data-tick],[data-wtick],[data-day],[data-mon],[data-delev],[data-save],[data-del],[data-up],[data-down],[data-toggle],#evAdd,#addHabit,#meSave,#minSave");
+  if (!t) return;
+  const wk = weekOf(new Date());
+
+  if (t.dataset.tick){
+    const date = t.dataset.date;
+    tick(me, date, t.dataset.tick, !ticks(me,date)[t.dataset.tick]); return;
+  }
+  if (t.dataset.wtick){ tickWeekly(me, wk, t.dataset.wtick, !weeklyTicks(me,wk)[t.dataset.wtick]); return; }
+  if (t.dataset.day){ sel = t.dataset.day; render(); return; }
+  if (t.dataset.mon){ calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+Number(t.dataset.mon), 1); render(); return; }
+  if (t.id === "evAdd"){
+    const title = el("evT").value.trim(); if (!title) return;
+    const id = "e"+Date.now().toString(36);
+    try { await update(ref(db,`events/${sel}`), {[id]:{title, emoji:el("evEm").value, who:me}}); }
+    catch(err){ fail("Couldn't add that event."); }
+    return;
+  }
+  if (t.dataset.delev){ remove(ref(db,`events/${sel}/${t.dataset.delev}`)).catch(()=>fail("Couldn't delete that.")); return; }
+
+  if (t.dataset.save){
+    const box = t.closest(".edit"), id = t.dataset.save, o = {};
+    box.querySelectorAll("[data-f]").forEach(f => o[f.dataset.f] = f.dataset.f==="pts" ? Number(f.value) : f.value);
+    if (!o.label.trim()) return;
+    try { await update(ref(db,`config/habits/${me}/${id}`), o); t.textContent="Saved ✓"; }
+    catch(err){ fail("Couldn't save that habit."); }
+    return;
+  }
+  if (t.dataset.del){
+    if (!confirm("Delete this habit? Past ticks stay in the history.")) return;
+    remove(ref(db,`config/habits/${me}/${t.dataset.del}`)).catch(()=>fail("Couldn't delete that habit."));
+    return;
+  }
+  if (t.id === "addHabit"){
+    const id = "h"+Date.now().toString(36);
+    const order = habits(me).length + 1;
+    try { await set(ref(db,`config/habits/${me}/${id}`), {label:"New habit", emoji:"🎯", pts:10, ring:"body", freq:"daily", order}); }
+    catch(err){ fail("Couldn't add a habit."); }
+    return;
+  }
+  if (t.id === "meSave"){
+    try { await update(ref(db,`config/people/${me}`), {name: el("meName").value.trim()||"Player", emoji: el("meEm").value}); }
+    catch(err){ fail("Couldn't save your name."); }
+    return;
+  }
+  if (t.id === "minSave"){
+    const v = Math.max(5, Math.min(200, Number(el("minD").value)||25));
+    try { await update(ref(db,"config"), {minDay: v}); } catch(err){ fail("Couldn't save the rule."); }
+    return;
+  }
+  if (t.dataset.up || t.dataset.down){
+    const k = t.dataset.up || t.dataset.down, dir = t.dataset.up ? -1 : 1;
+    const order = layoutFor(me).map(c=>c.k);
+    const i = order.indexOf(k), j = i+dir;
+    if (j<0 || j>=order.length) return;
+    [order[i],order[j]] = [order[j],order[i]];
+    update(ref(db,`layout/${me}`), {order}).catch(()=>fail("Couldn't save the layout."));
+    return;
+  }
+  if (t.dataset.toggle){
+    const k = t.dataset.toggle;
+    const off = Object.assign({}, (S.layout[me]&&S.layout[me].off)||{});
+    off[k] = !off[k];
+    update(ref(db,`layout/${me}`), {off}).catch(()=>fail("Couldn't save the layout."));
+    return;
+  }
+});
+
+subscribe();
+render();
+</script>
+</body>
+</html>

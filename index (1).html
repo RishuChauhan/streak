@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#151210">
+<title>Streak · Rishu vs Saloni</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Karla:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#141110; --panel:#1E1A18; --line:#302A26;
+    --ink:#F5EEE7; --dim:#9C918A;
+    --r:#39C0A8; --s:#F2789F; --gold:#E8B84B; --good:#6FCF7A;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:Karla,system-ui,sans-serif;-webkit-text-size-adjust:100%}
+  body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+  .wrap{max-width:620px;margin:0 auto;padding:18px 16px 56px}
+
+  .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:16px}
+  .week{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim)}
+  .who{font-size:12px;color:var(--dim);background:transparent;border:1px solid var(--line);
+    border-radius:99px;padding:6px 12px;color:var(--ink);font-family:inherit;cursor:pointer}
+
+  .score{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;
+    background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:8px}
+  .side{text-align:center}
+  .side .nm{font-size:13px;color:var(--dim);margin-bottom:2px}
+  .side .pts{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;
+    font-size:clamp(34px,11vw,52px);line-height:1}
+  .side.r .pts{color:var(--r)} .side.s .pts{color:var(--s)}
+  .side .sub{font-size:12px;color:var(--dim);margin-top:4px}
+  .vs{font-size:12px;color:var(--dim);letter-spacing:.1em}
+  .lead{text-align:center;font-size:13px;color:var(--gold);margin:0 0 20px;min-height:20px}
+
+  h2{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:15px;
+    letter-spacing:.02em;margin:22px 0 10px;display:flex;justify-content:space-between;align-items:baseline}
+  h2 small{font-weight:400;font-size:12px;color:var(--dim)}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .row{display:flex;align-items:center;gap:12px;padding:13px 14px;border-top:1px solid var(--line);cursor:pointer;
+    -webkit-tap-highlight-color:transparent}
+  .row:first-child{border-top:0}
+  .row .tick{flex:0 0 auto;width:26px;height:26px;border-radius:9px;border:1.5px solid var(--line);
+    display:grid;place-items:center;font-size:14px;color:transparent;transition:.15s}
+  .row.on .tick{background:var(--good);border-color:var(--good);color:#12200F}
+  .row .lbl{flex:1;font-size:15px}
+  .row.on .lbl{color:var(--dim);text-decoration:line-through}
+  .row .p{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
+  .row.locked{opacity:.45;cursor:not-allowed}
+
+  .days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+  .day{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 4px;text-align:center}
+  .day .dd{font-size:10px;color:var(--dim);letter-spacing:.04em}
+  .day .bars{display:flex;gap:3px;justify-content:center;margin-top:7px;height:34px;align-items:flex-end}
+  .day i{display:block;width:7px;border-radius:3px;background:var(--line);min-height:3px}
+  .day i.r{background:var(--r)} .day i.s{background:var(--s)}
+  .day.today{border-color:var(--gold)}
+
+  .streaks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .st{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+  .st .n{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:26px}
+  .st .t{font-size:12px;color:var(--dim)}
+  .st.r .n{color:var(--r)} .st.s .n{color:var(--s)}
+
+  .rules{margin-top:26px;font-size:13px;color:var(--dim);line-height:1.6}
+  .rules b{color:var(--ink);font-weight:600}
+  .bad{background:#3A1E1E;border:1px solid #6B2E2E;color:#FFD9D9;padding:12px 14px;
+    border-radius:12px;font-size:13px;margin-bottom:16px;display:none}
+  .pick{position:fixed;inset:0;background:rgba(10,8,7,.94);display:grid;place-items:center;z-index:9}
+  .pick .box{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:24px;width:min(360px,88vw);text-align:center}
+  .pick h3{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;margin:0 0 4px;font-size:22px}
+  .pick p{color:var(--dim);font-size:13px;margin:0 0 18px}
+  .pick button{display:block;width:100%;margin-top:10px;padding:14px;border-radius:12px;
+    border:1px solid var(--line);background:transparent;color:var(--ink);font-family:inherit;font-size:16px;cursor:pointer}
+  .pick button.r:hover{border-color:var(--r)} .pick button.s:hover{border-color:var(--s)}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="week" id="weekLabel">Loading</div>
+    <button class="who" id="whoBtn" type="button">Switch player</button>
+  </div>
+
+  <div class="bad" id="bad"></div>
+
+  <div class="score">
+    <div class="side r">
+      <div class="nm">Rishu</div>
+      <div class="pts" id="ptsR">0</div>
+      <div class="sub" id="pctR">0% of target</div>
+    </div>
+    <div class="vs">VS</div>
+    <div class="side s">
+      <div class="nm">Saloni</div>
+      <div class="pts" id="ptsS">0</div>
+      <div class="sub" id="pctS">0% of target</div>
+    </div>
+  </div>
+  <p class="lead" id="lead"></p>
+
+  <h2>Today <small id="todayLabel"></small></h2>
+  <div class="card" id="todayCard"></div>
+
+  <h2>This week's one-offs</h2>
+  <div class="card" id="weeklyCard"></div>
+
+  <h2>The week <small>daily points</small></h2>
+  <div class="days" id="days"></div>
+
+  <div class="streaks">
+    <div class="st r"><div class="n" id="stR">0</div><div class="t">Rishu's streak</div></div>
+    <div class="st s"><div class="n" id="stS">0</div><div class="t">Saloni's streak</div></div>
+  </div>
+
+  <div class="rules">
+    <p><b>How it scores.</b> Hard things pay more. A day counts for the streak only if you clear <b>25 points</b>, which is roughly the bad-day minimum. Streak breaks at zero if you miss a day, so never miss two in a row.</p>
+    <p><b>Multiplier.</b> 3-day streak pays 1.2x, 7-day pays 1.5x. Consistency beats one heroic Sunday.</p>
+    <p><b>Fair fight.</b> The percentage is what counts, not the raw points, because the two lists are different sizes. Loser of the week pays for the Sunday outing.</p>
+  </div>
+</div>
+
+<div class="pick" id="pick">
+  <div class="box">
+    <h3>Who's tapping?</h3>
+    <p>Saved on this phone. You can switch any time.</p>
+    <button class="r" data-me="r" type="button">I'm Rishu</button>
+    <button class="s" data-me="s" type="button">I'm Saloni</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+/* ─── 1. PASTE YOUR FIREBASE CONFIG HERE ─────────────────────────── */
+const firebaseConfig = {
+  apiKey: "AIzaSyCv97yuzZf4-OeJEUQcgHzHHUoYlrahqxY",
+  authDomain: "habit-tracker-54259.firebaseapp.com",
+  databaseURL: "https://habit-tracker-54259-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "habit-tracker-54259",
+  storageBucket: "habit-tracker-54259.firebasestorage.app",
+  messagingSenderId: "650412949881",
+  appId: "1:650412949881:web:78e19ceb7d9d6aecab6fa8"
+};
+/* ────────────────────────────────────────────────────────────────── */
+
+const DAILY = {
+  r: [
+    {k:"gym",   label:"Gym session",            p:15},
+    {k:"gre",   label:"GRE, 3 hours",           p:15},
+    {k:"dsa",   label:"DSA or AI, 3 hours",     p:15},
+    {k:"sleep", label:"Slept on time, 7–8 hrs", p:10},
+    {k:"steps", label:"10,000 steps",           p:5},
+    {k:"med",   label:"Meditation, twice",      p:5}
+  ],
+  s: [
+    {k:"work",  label:"Gym or calisthenics",    p:15},
+    {k:"home",  label:"Home workout",           p:10},
+    {k:"cont",  label:"Content work, 1 hour",   p:15},
+    {k:"sleep", label:"Slept on time",          p:10},
+    {k:"steps", label:"10,000 steps",           p:5},
+    {k:"med",   label:"Meditation",             p:5}
+  ]
+};
+const WEEKLY = {
+  r: [
+    {k:"setup", label:"GRE: resource picked, mock booked", p:20}
+  ],
+  s: [
+    {k:"reels", label:"2 funny reels posted",     p:20},
+    {k:"vids",  label:"2 funny videos made",      p:20},
+    {k:"yt",    label:"First YouTube upload",     p:20},
+    {k:"greece",label:"Greece content + outfits", p:15},
+    {k:"show",  label:"Show day",                 p:20}
+  ]
+};
+const MIN_DAY = 25;
+const DAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+function weekId(d){
+  const t = new Date(d); t.setHours(0,0,0,0);
+  const day = (t.getDay() + 6) % 7;            // Monday = 0
+  t.setDate(t.getDate() - day);
+  return t.getFullYear() + "-" + String(t.getMonth()+1).padStart(2,"0") + "-" + String(t.getDate()).padStart(2,"0");
+}
+function mondayOf(d){ const t=new Date(d); t.setHours(0,0,0,0); t.setDate(t.getDate()-((t.getDay()+6)%7)); return t; }
+function dayIndex(d){ return (new Date(d).getDay() + 6) % 7; }
+function fmt(d){ return d.toLocaleDateString(undefined,{day:"numeric",month:"short"}); }
+
+const WK = weekId(new Date());
+const MON = mondayOf(new Date());
+const TODAY = dayIndex(new Date());
+const sun = new Date(MON); sun.setDate(sun.getDate()+6);
+document.getElementById("weekLabel").textContent = fmt(MON) + " – " + fmt(sun);
+document.getElementById("todayLabel").textContent = DAY_NAMES[new Date().getDay()];
+
+let me = null;
+try { me = localStorage.getItem("player"); } catch(e){}
+let state = {};
+let db = null, dbRef = null;
+
+function fail(msg){ const b=document.getElementById("bad"); b.textContent=msg; b.style.display="block"; }
+
+try {
+  const app = initializeApp(firebaseConfig);
+  db = getDatabase(app);
+  dbRef = ref(db, "weeks/" + WK);
+  onValue(dbRef, snap => { state = snap.val() || {}; render(); },
+          err => fail("Can't reach the database. Ticks won't sync until it's back. " + err.code));
+} catch(e){
+  fail("Firebase config is missing. Paste your project config into the file, then reload.");
+}
+
+function got(who, scope, k){ return !!(state[who] && state[who][scope] && state[who][scope][k]); }
+function dayPts(who, di){
+  let n = 0;
+  DAILY[who].forEach(it => { if (got(who,"d"+di,it.k)) n += it.p; });
+  return n;
+}
+function weekPts(who){
+  let n = 0;
+  for (let i=0;i<7;i++) n += Math.round(dayPts(who,i) * mult(who,i));
+  WEEKLY[who].forEach(it => { if (got(who,"w",it.k)) n += it.p; });
+  return n;
+}
+function target(who){
+  const daily = DAILY[who].reduce((a,b)=>a+b.p,0) * 7;
+  const wk = WEEKLY[who].reduce((a,b)=>a+b.p,0);
+  return daily + wk;
+}
+function streakAt(who, upto){
+  let s = 0;
+  for (let i=0;i<=upto;i++){ s = dayPts(who,i) >= MIN_DAY ? s+1 : 0; }
+  return s;
+}
+function mult(who, di){
+  const s = streakAt(who, di-1);
+  if (s >= 7) return 1.5;
+  if (s >= 3) return 1.2;
+  return 1;
+}
+
+async function toggle(who, scope, k){
+  if (who !== me) return;
+  const val = !got(who, scope, k);
+  if (!state[who]) state[who] = {};
+  if (!state[who][scope]) state[who][scope] = {};
+  state[who][scope][k] = val;
+  render();
+  if (!dbRef) return;
+  try { await update(ref(db, "weeks/"+WK+"/"+who+"/"+scope), {[k]: val}); }
+  catch(e){ fail("That tick didn't save. Check your connection and tap again."); }
+}
+
+function rows(container, who, scope, items){
+  container.innerHTML = "";
+  items.forEach(it => {
+    const on = got(who, scope, it.k);
+    const el = document.createElement("div");
+    el.className = "row" + (on ? " on" : "") + (who !== me ? " locked" : "");
+    el.innerHTML = '<span class="tick">✓</span><span class="lbl"></span><span class="p">'+it.p+'</span>';
+    el.querySelector(".lbl").textContent = it.label;
+    el.addEventListener("click", () => toggle(who, scope, it.k));
+    container.appendChild(el);
+  });
+}
+
+function render(){
+  if (!me){ document.getElementById("pick").style.display = "grid"; return; }
+  document.getElementById("pick").style.display = "none";
+  document.getElementById("whoBtn").textContent = (me === "r" ? "Rishu" : "Saloni") + " · switch";
+
+  rows(document.getElementById("todayCard"), me, "d"+TODAY, DAILY[me]);
+  rows(document.getElementById("weeklyCard"), me, "w", WEEKLY[me]);
+
+  const pr = weekPts("r"), ps = weekPts("s");
+  const cr = Math.round(pr/target("r")*100), cs = Math.round(ps/target("s")*100);
+  document.getElementById("ptsR").textContent = pr;
+  document.getElementById("ptsS").textContent = ps;
+  document.getElementById("pctR").textContent = cr + "% of target";
+  document.getElementById("pctS").textContent = cs + "% of target";
+  const lead = document.getElementById("lead");
+  lead.textContent = cr === cs ? "Dead level." : (cr > cs ? "Rishu leads by " + (cr-cs) + " points of percentage."
+                                                         : "Saloni leads by " + (cs-cr) + " points of percentage.");
+
+  const days = document.getElementById("days");
+  days.innerHTML = "";
+  const maxD = Math.max(1, ...[0,1,2,3,4,5,6].flatMap(i => [dayPts("r",i), dayPts("s",i)]));
+  for (let i=0;i<7;i++){
+    const d = new Date(MON); d.setDate(d.getDate()+i);
+    const hr = Math.round(dayPts("r",i)/maxD*34), hs = Math.round(dayPts("s",i)/maxD*34);
+    const el = document.createElement("div");
+    el.className = "day" + (i === TODAY ? " today" : "");
+    el.innerHTML = '<div class="dd">'+["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][i]+'</div>'+
+      '<div class="bars"><i class="r" style="height:'+Math.max(3,hr)+'px"></i>'+
+      '<i class="s" style="height:'+Math.max(3,hs)+'px"></i></div>';
+    days.appendChild(el);
+  }
+
+  document.getElementById("stR").textContent = streakAt("r", TODAY);
+  document.getElementById("stS").textContent = streakAt("s", TODAY);
+}
+
+document.querySelectorAll(".pick button").forEach(b => {
+  b.addEventListener("click", () => {
+    me = b.dataset.me;
+    try { localStorage.setItem("player", me); } catch(e){}
+    render();
+  });
+});
+document.getElementById("whoBtn").addEventListener("click", () => {
+  me = null;
+  try { localStorage.removeItem("player"); } catch(e){}
+  document.getElementById("pick").style.display = "grid";
+});
+
+render();
+</script>
+</body>
+</html>
